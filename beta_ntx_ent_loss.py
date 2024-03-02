@@ -21,7 +21,7 @@ class vloss(nn.Module):
         sm = 0.5 * (lVp.exp() + lVq.exp())
         lSm = sm.log()/2
         mm = 0.5 * (mp + mq)
-        eq_ = (- 0.5 * (self.l1(lVp/2,lSm) - self.l1(lVq/2,lSm)) + 0.25 * ((self.l2(mp,mm) + self.l2(mq,mm)) / sm)).mean()
+        eq_ = (0.5 * (self.l1(lSm, lVp/2) + self.l1(lSm, lVq/2)) + 0.25 * ((self.l2(mp,mm) + self.l2(mq,mm)) / sm)).mean()
         norm_ = - 0.5 * (1 + logVar - mu.pow(2) - logVar.exp()).mean()
         return eq_ + norm_
 
