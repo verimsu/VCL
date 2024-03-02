@@ -1,6 +1,6 @@
 import math
 import torch
-from torch import nn
+import torch.nn as nn
 import torch.nn.functional as F
 
 class vloss(nn.Module):
@@ -14,24 +14,28 @@ class vloss(nn.Module):
         return (x - y).square()
 
     def forward(self, mu, logVar):
-        lVp = logVar[:,0,:]
-        lVq = logVar[:,1,:]
         mp = mu[:,0,:]
         mq = mu[:,1,:]
-        sm = 0.5 * (lVp.exp() + lVq.exp())
-        lSm = sm.log()/2
         mm = 0.5 * (mp + mq)
-        eq_ = (0.5 * (self.l1(lSm, lVp/2) + self.l1(lSm, lVq/2)) + 0.25 * ((self.l2(mp,mm) + self.l2(mq,mm)) / sm)).mean()
+        
+        lVp = logVar[:,0,:]
+        lVq = logVar[:,1,:]        
+        vm = 0.5 * (lVp.exp() + lVq.exp())
+        lVm = vm.log()
+        
+        ft = - self.l1(lVp, lVm) - self.l1(lVq, lVm)
+        st = (self.l2(mp,mm) + self.l2(mq,mm)) / (2 * vm)
+        
+        eq_ = 0.5 * (ft + st).mean()
         norm_ = - 0.5 * (1 + logVar - mu.pow(2) - logVar.exp()).mean()
         return eq_ + norm_
 
 class betaNTXentLoss(torch.nn.Module):
-    def __init__(self, beta=0.0005, temperature=0.07):
+    def __init__(self, beta, temperature):
         super(betaNTXentLoss, self).__init__()
         self.beta = beta
         self.sigma = 0.5
         self.temperature = temperature
-        self.eps = 1e-6
         
     def mask_type_transfer(self, mask):
         mask = mask.type(torch.bool)
@@ -54,8 +58,9 @@ class betaNTXentLoss(torch.nn.Module):
     
     def GaussianDistance(self, z0 ,z1):
         const1 = ((1 + self.beta) / self.beta)
-        const2 = 1 / pow((2 * math.pi * (self.sigma**2)), self.beta)
-        return const1 * (const2 * torch.exp(-(self.beta * 128 / (2 * (self.sigma**2))) * self.similarity_matrix(z0, z1)) - 1)
+        const2 = 1 / pow((2 * math.pi * (self.sigma**2)), 128 * self.beta)
+        term = torch.exp(-(self.beta / (2 * (self.sigma**2))) * self.similarity_matrix(z0, z1))
+        return const1 * (const2 * term - 1)
     
     def forward(self, zis, zjs):
         device = zis.device
@@ -71,6 +76,5 @@ class betaNTXentLoss(torch.nn.Module):
         sim_pos = sim_mat.masked_select(pos_mask).view(2*batch_size).clone()
         sim_neg = sim_mat.masked_select(neg_mask).view(2*batch_size, -1).clone()
         
-        loss = (- sim_pos + torch.logsumexp(sim_neg, dim=-1)).mean()
-        
+        loss = (torch.logsumexp(sim_neg, dim=-1) - sim_pos).mean()
         return loss
