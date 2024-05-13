@@ -1,4 +1,4 @@
-# VCL: Variational Self-supervised Contrastive Learning using Beta Divergence
+# VCL: Variational Self-supervised Contrastive Learning
 ## ImageNet ResNet50
 
 Reference implementations for self-supervised learning (SSL) methods on ImageNet with
