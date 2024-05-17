@@ -8,6 +8,7 @@ Reference implementations for Variational Contrastive Learning (VCL) methods on 
 | Model            | Batch Size | Epochs | Linear Top1 | Linear Top5 | Finetune Top1 | Finetune Top5 | kNN Top1 | kNN Top5 | Checkpoint                                                                 |
 |------------------|----------|------------|--------|--------------|--------------|---------------|---------------|----------|----------------------------------------------------------------------------|
 | VCL               | 256        | 100    | -            | -            | -             | -             | -        | -        | -                                                                          |
+| VCL               | 256        | 600    | -            | -            | -             | -             | -        | -        | -                                                                          |
 
 **100 epoch results by competitor algorithms**
 
