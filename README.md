@@ -3,6 +3,12 @@
 
 Reference implementations for Variational Contrastive Learning (VCL) methods on ImageNet with ResNet50 backbones.
 
+**100 epoch results by Variational Contrastive Learning algorithms**
+
+| Model            | Batch Size | Epochs | Linear Top1 | Linear Top5 | Finetune Top1 | Finetune Top5 | kNN Top1 | kNN Top5 | Checkpoint                                                                 |
+|------------------|----------|------------|--------|--------------|--------------|---------------|---------------|----------|----------------------------------------------------------------------------|
+| VCL               | 256        | 100    | -            | -            | -             | -             | -        | -        | -                                                                          |
+
 **100 epoch results by competitor algorithms**
 
 | Model            | Batch Size | Epochs | Linear Top1 | Linear Top5 | Finetune Top1 | Finetune Top5 | kNN Top1 | kNN Top5 | Checkpoint                                                                 |
@@ -17,13 +23,6 @@ Reference implementations for Variational Contrastive Learning (VCL) methods on 
 | SwAV              | 256        | 100    | 67.2         | 88.1         | 75.4          | 92.7          | 49.5     | 78.6     | [link](https://lightly-ssl-checkpoints.s3.amazonaws.com/imagenet_resnet50_swav_2023-05-25_08-29-14/pretrain/version_0/checkpoints/epoch%3D99-step%3D500400.ckpt) |
 | TiCo              | 256        | 100    | 49.7         | 74.4         | 72.7          | 90.9          | 26.6     | 53.6     | [link](https://lightly-ssl-checkpoints.s3.amazonaws.com/imagenet_resnet50_tico_2024-01-07_18-40-57/pretrain/version_0/checkpoints/epoch%3D99-step%3D250200.ckpt) |
 | VICReg            | 256        | 100    | 63.0         | 85.4         | 73.7          | 91.9          | 46.3     | 75.2     | [link](https://lightly-ssl-checkpoints.s3.amazonaws.com/imagenet_resnet50_vicreg_2023-09-11_10-53-08/pretrain/version_0/checkpoints/epoch%3D99-step%3D500400.ckpt) |
-
-**100 epoch results by Variational Contrastive Learning algorithms**
-
-| Model            | Batch Size | Epochs | Linear Top1 | Linear Top5 | Finetune Top1 | Finetune Top5 | kNN Top1 | kNN Top5 | Checkpoint                                                                 |
-|------------------|----------|------------|--------|--------------|--------------|---------------|---------------|----------|----------------------------------------------------------------------------|
-| VCL               | 256        | 100    | -            | -            | -             | -             | -        | -        | -                                                                          |
-
 
 ## Installation
 
