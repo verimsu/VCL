@@ -25,7 +25,7 @@ Reference implementations for Variational Contrastive Learning (VCL) methods on 
 | VCL               | 256        | 100    | -            | -            | -             | -             | -        | -        | -                                                                          |
 
 
-### Installation
+## Installation
 
 Follow these steps to set up your environment and install the necessary packages.
 
