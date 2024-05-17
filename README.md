@@ -43,7 +43,7 @@ Install PyTorch with the appropriate CUDA version. You can find the correct comm
 For example, to install PyTorch with CUDA 11.3, use:
 
 ```bash
-conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+conda install pytorch torchvision cudatoolkit=11.3 -c pytorch
 ```
 
 #### Step 3: Install Lightly
