@@ -24,6 +24,44 @@ Reference implementations for Variational Contrastive Learning (VCL) methods on 
 |------------------|----------|------------|--------|--------------|--------------|---------------|---------------|----------|----------------------------------------------------------------------------|
 | VCL               | 256        | 100    | -            | -            | -             | -             | -        | -        | -                                                                          |
 
+
+### Installation
+
+Follow these steps to set up your environment and install the necessary packages.
+
+#### Step 1: Create a Conda Environment
+
+First, create a new Conda environment with Python 3.8 (or another compatible version).
+
+```bash
+conda create --name lightly-env python=3.8
+conda activate lightly-env
+```
+
+#### Step 2: Install PyTorch with GPU Support
+Install PyTorch with the appropriate CUDA version. You can find the correct command for your system on the PyTorch website.
+For example, to install PyTorch with CUDA 11.3, use:
+
+```bash
+conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+```
+
+#### Step 3: Install Lightly
+Install the Lightly library using pip.
+
+```bash
+pip install lightly
+```
+
+#### Step 4: Verify Installation
+Ensure that PyTorch can access the GPU. You can do this by running a simple script in Python.
+
+```bash
+import torch
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+```
+
 ## Run Benchmark
 
 To run the benchmark first download the ImageNet ILSVRC2012 split from here: https://www.image-net.org/challenges/LSVRC/2012/.
