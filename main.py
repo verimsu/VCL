@@ -6,9 +6,8 @@ from typing import Sequence, Union
 import finetune_eval
 import knn_eval
 import linear_eval
-import simclr
+import eval_vcl
 import vcl
-import beta_vcl
 import torch
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import (
@@ -26,6 +25,8 @@ from lightly.transforms.utils import IMAGENET_NORMALIZE
 from lightly.utils.benchmarking import MetricCallback
 from lightly.utils.dist import print_rank_zero
 
+torch.set_float32_matmul_precision('high')
+
 parser = ArgumentParser("ImageNet ResNet50 Benchmarks")
 parser.add_argument("--train-dir", type=Path, default="/datasets/imagenet/train")
 parser.add_argument("--val-dir", type=Path, default="/datasets/imagenet/val")
@@ -35,6 +36,7 @@ parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--num-workers", type=int, default=8)
 parser.add_argument("--accelerator", type=str, default="gpu")
 parser.add_argument("--devices", type=int, default=1)
+parser.add_argument("--temperature", type=float, default=0.1)
 parser.add_argument("--precision", type=str, default="16-mixed")
 parser.add_argument("--ckpt-path", type=Path, default=None)
 parser.add_argument("--compile-model", action="store_true")
@@ -45,8 +47,8 @@ parser.add_argument("--skip-linear-eval", action="store_true")
 parser.add_argument("--skip-finetune-eval", action="store_true")
 
 METHODS = {
-    "simclr": {"model": simclr.SimCLR, "transform": simclr.transform},
-    "vcl": {"model": vcl.VCL, "transform": simclr.transform},
+    "eval_vcl": {"model": eval_vcl.VCL, "transform": eval_vcl.transform},
+    "vcl": {"model": vcl.VCL, "transform": eval_vcl.transform}
 }
 
 
@@ -59,6 +61,7 @@ def main(
     num_workers: int,
     accelerator: str,
     devices: int,
+    temperature: float,
     precision: str,
     compile_model: bool,
     methods: Union[Sequence[str], None],
@@ -77,7 +80,7 @@ def main(
             log_dir / method / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         ).resolve()
         model = METHODS[method]["model"](
-            batch_size_per_device=batch_size_per_device, num_classes=num_classes, num_gpus=devices
+            batch_size_per_device=batch_size_per_device, num_classes=num_classes, num_gpus=devices, temperature=temperature
         )
 
         if compile_model and hasattr(torch, "compile"):
@@ -178,7 +181,7 @@ def pretrain(
         shuffle=True,
         num_workers=num_workers,
         drop_last=True,
-        persistent_workers=False,
+        persistent_workers=True,
     )
 
     # Setup validation data.
@@ -196,7 +199,7 @@ def pretrain(
         batch_size=batch_size_per_device,
         shuffle=False,
         num_workers=num_workers,
-        persistent_workers=False,
+        persistent_workers=True,
     )
 
     # Train model.
@@ -214,6 +217,7 @@ def pretrain(
         ],
         logger=TensorBoardLogger(save_dir=str(log_dir), name="pretrain"),
         precision=precision,
+        strategy="ddp",
         sync_batchnorm=True,
         num_sanity_val_steps=0,
     )

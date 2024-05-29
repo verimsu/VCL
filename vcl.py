@@ -17,46 +17,11 @@ from lightly.utils.scheduler import CosineWarmupScheduler
 import torch.nn as nn
 import torch.nn.functional as F
 
+from lightly.utils import dist
+import torch.distributed as torch_dist
 import torch.distributions as tdist
 
-class vloss(nn.Module):
-    def __init__(self):
-        super(vloss,self).__init__()
-
-    def l1(self, x, y):
-        return x - y
-
-    def l2(self, x, y):
-        return (x - y).square()
-
-    def jsd_gaussian(self, p_mean, q_mean, logVar_):
-        p_std = (logVar_[:,0,:] / 2).exp()
-        q_std = (logVar_[:,1,:] / 2).exp()
-
-        # Create Gaussian distributions using mean and std
-        p_dist = tdist.Normal(p_mean, p_std)
-        q_dist = tdist.Normal(q_mean, q_std)
-
-        # Calculate M as the average of the two distributions
-        m_dist = tdist.Normal((p_mean + q_mean) / 2, (p_std + q_std) / 2)
-
-        # Calculate KL divergence between each distribution and M
-        kl_pm = tdist.kl_divergence(p_dist, m_dist)
-        kl_qm = tdist.kl_divergence(q_dist, m_dist)
-
-        # Calculate JSD as the average of the KL divergences
-        jsd = (kl_pm + kl_qm) / 2
-
-        return jsd
-    
-    def forward(self, mu, logVar):
-        mp = mu[:,0,:]
-        mq = mu[:,1,:]
-        mm = 0.5 * (mp + mq)
-
-        jsd = self.jsd_gaussian(mp, mq, logVar).mean()
-        norm_ = - 0.5 * (1 + logVar - mu.pow(2) - logVar.exp()).mean()
-        return jsd + 0.002 * norm_
+torch.set_float32_matmul_precision('high')
 
 class Projector(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -71,9 +36,9 @@ class Projector(nn.Module):
         self.fc_var = nn.Linear(hidden_dim, output_dim)
 
     def reparameterize(self, mu, logVar):
-        std = logVar.mul(0.5).exp_()
-        eps = torch.randn_like(std)
-        return eps * std + mu      
+        std = torch.exp(logVar / 2)
+        _dist = tdist.Normal(mu, std)
+        return _dist.rsample()
         
     def forward(self, x):
         x = self.interpreter(x)
@@ -83,7 +48,7 @@ class Projector(nn.Module):
         return rp, mu, logVar
 
 class VCL(LightningModule):
-    def __init__(self, batch_size_per_device: int, num_classes: int, num_gpus: int) -> None:
+    def __init__(self, batch_size_per_device: int, num_classes: int, num_gpus: int, temperature: float) -> None:
         super().__init__()
         self.save_hyperparameters()
         self.batch_size_per_device = batch_size_per_device
@@ -93,13 +58,73 @@ class VCL(LightningModule):
         resnet.fc = Identity()  # Ignore classification head
         self.backbone = resnet
         
+        self.temperature = temperature
         feature_dim = 2048
         self.projection_head = Projector(feature_dim, feature_dim, 128)
         
-        self.criterion = NTXentLoss(temperature=0.07, gather_distributed=True)
-        self.vloss = vloss()
-
+        self.criterion = NTXentLoss(temperature=temperature, gather_distributed=True)
+        self.cross_entropy = nn.CrossEntropyLoss(reduction="mean")
         self.online_classifier = OnlineLinearClassifier(num_classes=num_classes)
+
+    def off_diagonal(self, x):
+        # return a flattened view of the off-diagonal elements of a square matrix
+        n, m = x.shape
+        assert n == m
+        return x.flatten()[:-1].view(n - 1, n + 1)[:, 1:].flatten()
+
+    def compute_objective(self, mu, logVar):
+        # Gather tensors on rank 0 device
+        gathered_mu = dist.gather(mu)
+        gathered_logVar = dist.gather(logVar)
+        gathered_mu = torch.cat(gathered_mu, 0)
+        gathered_logVar = torch.cat(gathered_logVar, 0)
+
+        # Compute the objective using gathered tensors
+        gathered_p_mean, gathered_p_logVar, gathered_q_mean, gathered_q_logVar = gathered_mu[:,0,:], gathered_logVar[:,0,:], gathered_mu[:,1,:], gathered_logVar[:,1,:]
+        gathered_p_std, gathered_q_std = torch.exp(gathered_p_logVar / 2.0), torch.exp(gathered_q_logVar / 2.0)
+        
+        objective = self.variational_loss(gathered_p_mean, gathered_p_std, gathered_q_mean, gathered_q_std).mean()
+        _norm_p = - 0.5 * (1 + gathered_p_logVar - gathered_p_mean.pow(2) - gathered_p_logVar.exp()).mean() 
+        _norm_q = - 0.5 * (1 + gathered_q_logVar - gathered_q_mean.pow(2) - gathered_q_logVar.exp()).mean()
+        pairwise_objective = self.off_diagonal(self.pairwise_variational_loss(gathered_p_mean, gathered_p_std, gathered_q_mean, gathered_q_std)).mean()
+
+        return objective + _norm_p + _norm_q - 0.0051 * pairwise_objective
+
+    def variational_loss(self, p_mean, p_std, q_mean, q_std):
+        # Create Gaussian distributions using mean and std
+        p_dist = tdist.Normal(p_mean, p_std)
+        q_dist = tdist.Normal(q_mean, q_std)
+
+        # Calculate M as the average of the two distributions
+        m_mean = (p_mean + q_mean) / 2
+        m_std = (p_std + q_std) / 2
+        m_dist = tdist.Normal(m_mean, m_std)
+
+        # Calculate KL divergence between each distribution and M
+        kl_pm = tdist.kl_divergence(p_dist, m_dist)
+        kl_qm = tdist.kl_divergence(q_dist, m_dist)
+
+        # Calculate JSD as the average of the KL divergences
+        jsd = (kl_pm + kl_qm) / 2
+        return jsd
+    
+    def pairwise_variational_loss(self, p_mean, p_std, q_mean, q_std):
+        # Create Gaussian distributions using mean and std
+        p_dist = tdist.Normal(p_mean, p_std)
+        q_dist = tdist.Normal(q_mean, q_std)
+
+        # Calculate M as the average of the two distributions
+        m_mean = (p_mean + q_mean) / 2
+        m_std = (p_std + q_std) / 2
+        m_dist = tdist.Normal(m_mean, m_std)
+
+        # Calculate KL divergence between each distribution and M
+        kl_pm = tdist.kl_divergence(p_dist, m_dist)
+        kl_qm = tdist.kl_divergence(q_dist, m_dist)
+
+        # Calculate JSD as the average of the KL divergences
+        jsd = (kl_pm.unsqueeze(1) + kl_qm.unsqueeze(0)) / 2
+        return jsd.mean(-1)
 
     def forward(self, x):
         x = self.backbone(x).flatten(start_dim=1)
@@ -116,8 +141,8 @@ class VCL(LightningModule):
 
         mu = torch.cat((mu0.unsqueeze(1), mu1.unsqueeze(1)),1)
         logVar = torch.cat((logVar0.unsqueeze(1), logVar1.unsqueeze(1)),1)
-
-        loss = self.criterion(z0, z1) + self.vloss(mu, logVar)        
+        
+        loss = self.criterion(z0, z1) + self.compute_objective(mu, logVar)
 
         self.log(
             "train_loss", loss, prog_bar=True, sync_dist=True, batch_size=len(targets)
@@ -163,9 +188,9 @@ class VCL(LightningModule):
             # Square root learning rate scaling improves performance for small
             # batch sizes (<=2048) and few training epochs (<=200). Alternatively,
             # linear scaling can be used for larger batches and longer training:
-            # lr=0.3 * self.batch_size_per_device * 2 / 256,
+            # lr=0.3 * self.batch_size_per_device  * self.num_gpus / 256,
             # See Appendix B.1. in the SimCLR paper https://arxiv.org/abs/2002.05709
-            lr=0.075 * math.sqrt(self.batch_size_per_device * 2),
+            lr=0.075 * math.sqrt(self.batch_size_per_device * self.num_gpus),
             momentum=0.9,
             # Note: Paper uses weight decay of 1e-6 but reference code 1e-4. See:
             # https://github.com/google-research/simclr/blob/2fc637bdd6a723130db91b377ac15151e01e4fc2/README.md?plain=1#L103
