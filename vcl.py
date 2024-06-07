@@ -91,14 +91,16 @@ class VCL(LightningModule):
         return jsd.mean(-1)
     
     def compute_pairwise_jsd_batch(self, p_means, p_stds, q_means, q_stds):
-        jsd_matrix = torch.zeros_like(p_means.T@p_means)
-        batch_size = len(jsd_matrix)
+        # Expand dimensions to enable broadcasting
+        p_means_exp = p_means.unsqueeze(1)  # Shape: (batch_size, 1, feature_dim)
+        p_stds_exp = p_stds.unsqueeze(1)    # Shape: (batch_size, 1, feature_dim)
+        q_means_exp = q_means.unsqueeze(0)  # Shape: (1, batch_size, feature_dim)
+        q_stds_exp = q_stds.unsqueeze(0)    # Shape: (1, batch_size, feature_dim)
 
-        for i in range(batch_size):
-            for j in range(batch_size):
-                jsd_matrix[i, j] = self.pairwise_jsd(p_means[i,:], p_stds[i,:], q_means[j,:], q_stds[j,:])
+        # Compute pairwise JSD for all pairs in a vectorized manner
+        jsd_matrix = self.pairwise_jsd(p_means_exp, p_stds_exp, q_means_exp, q_stds_exp)
 
-        return jsd_matrix        
+        return jsd_matrix
     
     def compute_objective(self, mu, logVar):
         # Gather tensors on rank 0 device
