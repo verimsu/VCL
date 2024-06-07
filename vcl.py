@@ -100,7 +100,7 @@ class VCL(LightningModule):
         # Compute pairwise JSD for all pairs in a vectorized manner
         jsd_matrix = self.pairwise_jsd(p_means_exp, p_stds_exp, q_means_exp, q_stds_exp)
 
-        return jsd_matrix
+        return torch.clamp(jsd_matrix, max=1.1250)
     
     def compute_objective(self, mu, logVar):
         # Gather tensors on rank 0 device
@@ -115,7 +115,7 @@ class VCL(LightningModule):
         
         objective = self.compute_pairwise_jsd_batch(gathered_p_mean, gathered_p_std, gathered_q_mean, gathered_q_std)
         pos_dist = torch.diag(objective)
-        neg_dist = self.off_diagonal(objective).mean()
+        neg_dist = self.off_diagonal(objective).mean(0)
         
         _norm_p = - 0.5 * (1 + gathered_p_logVar - gathered_p_mean.pow(2) - gathered_p_logVar.exp()).mean(1) 
         _norm_q = - 0.5 * (1 + gathered_q_logVar - gathered_q_mean.pow(2) - gathered_q_logVar.exp()).mean(1)
