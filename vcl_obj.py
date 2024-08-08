@@ -15,7 +15,7 @@ class VCLObjective(nn.Module):
 
         # Calculate M as the average of the two distributions
         m_mean = (mu_p + mu_q) / 2
-        m_std = (std_p + std_q) / 2
+        m_std = (((log_var_p.exp() + log_var_q.exp()) / 2).log() / 2).exp()
         m_dist = tdist.Normal(m_mean, m_std)
 
         # Calculate KL divergence between each distribution and M
