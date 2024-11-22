@@ -53,7 +53,6 @@ This table shows F1-scores on the CelebA test set when YFCC-CelebA dataset is us
 | Method | Supervised Pretraining w. Imagenet | Self-supervised Training w. YFCC-CelebA | CelebA 1% Resnet10t | CelebA 1% VGG11bn | CelebA 10% Resnet10t | CelebA 10% VGG11bn |
 |--------|-----------------------------------|----------------------------------------|---------------------|-------------------|----------------------|---------------------|
 | **Transfer Learning** | yes | no | 0.5784 | 0.5673 | 0.6517 | 0.6654 |
-| **Self-supervised Models** |
 | BarlowTwins | no | yes | <u>0.5894</u> | 0.5712 | 0.6647 | 0.6665 |
 | BYOL | no | yes | 0.5726 | 0.5683 | 0.6747 | 0.6725 |
 | MoCo | no | yes | 0.5467 | 0.5535 | <u>0.6987</u> | <u>0.6896</u> |
