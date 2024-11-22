@@ -1,4 +1,4 @@
-# Variational Contrastive Learning (VCL) for Face Recognition
+# Variational Contrastive Learning (VCL) for Face Understanding
 A robust self-supervised learning method for handling noisy and unlabeled data in multi-label settings, with applications to face understanding.
 
 ## Overview
