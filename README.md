@@ -69,11 +69,17 @@ This table shows F1-scores on the CelebA test set when YFCC-CelebA dataset is us
 ## Citation
 
 ```bibtex
-@article{vcl2024,
-  title={Self-supervised Variational Contrastive Learning with Applications to Face Understanding},
+@INPROCEEDINGS{10582001,
   author={Yavuz, Mehmet Can and Yanikoglu, Berrin},
-  year={2024}
-}
+  booktitle={2024 IEEE 18th International Conference on Automatic Face and Gesture Recognition (FG)}, 
+  title={Self-Supervised Variational Contrastive Learning with Applications to Face Understanding}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1-9},
+  keywords={Face recognition;Semantics;Noise;Contrastive learning;Gesture recognition;Noise measurement},
+  doi={10.1109/FG59268.2024.10582001}}
+
 ```
 
 ## License
