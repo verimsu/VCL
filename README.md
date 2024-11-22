@@ -19,6 +19,25 @@ The model consists of three main components:
 - Gaussian sampling head for distribution learning
 - Contrastive learning framework with augmentations[1]
 
+# F1-scores on the CelebA test set
+
+This table shows F1-scores on the CelebA test set when YFCC-CelebA dataset is used for pretraining. The models are then fine-tuned using 1% and 10% of the labeled CelebA dataset. Bold indicates the best results; underline indicates the second best.
+
+| Method | Supervised Pretraining w. Imagenet | Self-supervised Training w. YFCC-CelebA | CelebA 1% Resnet10t | CelebA 1% VGG11bn | CelebA 10% Resnet10t | CelebA 10% VGG11bn |
+|--------|-----------------------------------|----------------------------------------|---------------------|-------------------|----------------------|---------------------|
+| **Transfer Learning** | yes | no | 0.5784 | 0.5673 | 0.6517 | 0.6654 |
+| BarlowTwins | no | yes | <u>0.5894</u> | 0.5712 | 0.6647 | 0.6665 |
+| BYOL | no | yes | 0.5726 | 0.5683 | 0.6747 | 0.6725 |
+| MoCo | no | yes | 0.5467 | 0.5535 | <u>0.6987</u> | <u>0.6896</u> |
+| NNCLR | no | yes | 0.5337 | 0.5474 | 0.6487 | 0.6359 |
+| SimCLR | no | yes | 0.5564 | 0.5652 | 0.6748 | 0.6693 |
+| SimSiam | no | yes | 0.5484 | 0.5565 | 0.6684 | 0.6641 |
+| Tico | no | yes | 0.5637 | <u>0.5790</u> | 0.6738 | 0.6683 |
+| SwaV | no | yes | 0.5638 | 0.5741 | 0.6646 | 0.6597 |
+| **Proposed** |
+| VCL | no | yes | 0.5836 | 0.5719 | 0.6848 | 0.6796 |
+| VCL (beta) | no | yes | **0.5998** | **0.5958** | **0.7098** | **0.6998** |
+
 ## Installation
 
 ```bash
@@ -41,29 +60,6 @@ python train_beta.py
 - Batch size: 128
 - Temperature: 0.07
 - Beta: 0.005[1]
-
-## Results
-
-Here's the table converted to a GitHub README format:
-
-# F1-scores on the CelebA test set
-
-This table shows F1-scores on the CelebA test set when YFCC-CelebA dataset is used for pretraining. The models are then fine-tuned using 1% and 10% of the labeled CelebA dataset. Bold indicates the best results; underline indicates the second best.
-
-| Method | Supervised Pretraining w. Imagenet | Self-supervised Training w. YFCC-CelebA | CelebA 1% Resnet10t | CelebA 1% VGG11bn | CelebA 10% Resnet10t | CelebA 10% VGG11bn |
-|--------|-----------------------------------|----------------------------------------|---------------------|-------------------|----------------------|---------------------|
-| **Transfer Learning** | yes | no | 0.5784 | 0.5673 | 0.6517 | 0.6654 |
-| BarlowTwins | no | yes | <u>0.5894</u> | 0.5712 | 0.6647 | 0.6665 |
-| BYOL | no | yes | 0.5726 | 0.5683 | 0.6747 | 0.6725 |
-| MoCo | no | yes | 0.5467 | 0.5535 | <u>0.6987</u> | <u>0.6896</u> |
-| NNCLR | no | yes | 0.5337 | 0.5474 | 0.6487 | 0.6359 |
-| SimCLR | no | yes | 0.5564 | 0.5652 | 0.6748 | 0.6693 |
-| SimSiam | no | yes | 0.5484 | 0.5565 | 0.6684 | 0.6641 |
-| Tico | no | yes | 0.5637 | <u>0.5790</u> | 0.6738 | 0.6683 |
-| SwaV | no | yes | 0.5638 | 0.5741 | 0.6646 | 0.6597 |
-| **Proposed** |
-| VCL | no | yes | 0.5836 | 0.5719 | 0.6848 | 0.6796 |
-| VCL (beta) | no | yes | **0.5998** | **0.5958** | **0.7098** | **0.6998** |
 
 ## Citation
 
