@@ -1,0 +1,4 @@
+LFW:
+    pairs_file_path: /export2/wangjun492/face_database/facex-zoo/private_file/test_data/lfw/pairs.txt
+    cropped_face_folder: /export2/wangjun492/face_database/facex-zoo/private_file/test_data/lfw/lfw_crop
+    image_list_file_path: /export2/wangjun492/face_database/facex-zoo/private_file/test_data/lfw/img_list.txt

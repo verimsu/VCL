@@ -1,0 +1,1 @@
+python test_lfw.py --test_set 'LFW' --data_conf_file 'data_conf.yaml' --batch_size 128 --model_path '/home/mehmetyavuz/_face/yfcc/yfcc_resnet10_pretrained.ckpt'

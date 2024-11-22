@@ -1,0 +1,10 @@
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 0
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 1
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 2
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 3
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 4
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 5
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 6
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 7
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 8
+python scripts/relAttribute.py --best ../yfcc/yfcc_resnet10_pretrained.ckpt --category-id 9
