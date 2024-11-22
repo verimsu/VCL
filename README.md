@@ -1,9 +1,9 @@
-# Variational Contrastive Learning (VCL) for Face Understanding
-A robust self-supervised learning method for handling noisy and unlabeled data in multi-label settings, with applications to face understanding.
+# 🎭 Variational Contrastive Learning (VCL) for Face Understanding
+
 
 ## Overview
 
-VCL combines variational contrastive learning with beta-divergence to learn effectively from unlabeled and noisy datasets. The method is particularly effective for face attribute recognition and verification tasks[1].
+A robust self-supervised learning method for handling noisy and unlabeled data in multi-label settings, with applications to face understanding. VCL combines variational contrastive learning with beta-divergence to learn effectively from unlabeled and noisy datasets. The method is particularly effective for face attribute recognition and verification tasks.
 
 ## Key Features
 
@@ -18,6 +18,9 @@ The model consists of three main components:
 - Feature extraction backbone (ResNet10t or VGG11bn)
 - Gaussian sampling head for distribution learning
 - Contrastive learning framework with augmentations[1]
+
+## ResNet Models and Weights
+The model weights shared through [https://huggingface.co/ogrenenmakine/RadImagenet](https://huggingface.co/ogrenenmakine/vcl-face-understanding)
 
 # F1-scores on the CelebA test set
 
