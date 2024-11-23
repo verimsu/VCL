@@ -20,7 +20,7 @@ The model consists of three main components:
 - Contrastive learning framework with augmentations[1]
 
 ## ResNet Models and Weights
-The model weights shared through [https://huggingface.co/ogrenenmakine/RadImagenet](https://huggingface.co/ogrenenmakine/vcl-face-understanding)
+The model weights shared through [https://huggingface.co/ogrenenmakine/vcl-face-understanding](https://huggingface.co/ogrenenmakine/vcl-face-understanding)
 
 # F1-scores on the CelebA test set
 
